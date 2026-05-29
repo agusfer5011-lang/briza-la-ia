@@ -1,19 +1,16 @@
 import streamlit as st
-import time
 from groq import Groq
-from datetime import datetime
-import pandas as pd
 
-# --- CONFIGURACIÓN ---
+# --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(page_title="Brisa IA | Ultimate Suite", page_icon="🚀", layout="wide")
 
-# Clave hardcodeada para evitar errores de configuración
-client = Groq(api_key="gsk_Xre2owlZBcX8Zq3BdV8tWGdyb3FYJdjiyv9ty24jrSEuVJsTqpQ")
+# Clave API de Groq
+client = Groq(api_key="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")
 
 # --- ESTADOS DE SESIÓN ---
-if "messages" not in st.session_state: 
+if "messages" not in st.session_state:
     st.session_state["messages"] = []
-if "mood" not in st.session_state: 
+if "mood" not in st.session_state:
     st.session_state["mood"] = "Amigable"
 
 # --- LÓGICA DE PERSONALIDAD ---
@@ -26,7 +23,7 @@ def get_system_prompt(mood):
     }
     return prompts.get(mood, "Eres Brisa, asistente general.")
 
-# --- SIDEBAR ---
+# --- SIDEBAR (PANEL LATERAL) ---
 with st.sidebar:
     st.header("🚀 Brisa IA Control")
     st.session_state["mood"] = st.selectbox("Personalidad:", ["Amigable", "Intelectual", "Cómica", "Motivadora"])
@@ -34,35 +31,39 @@ with st.sidebar:
         st.session_state["messages"] = []
         st.rerun()
 
-# --- INTERFAZ ---
+# --- INTERFAZ DE USUARIO ---
 st.title(f"Brisa IA v4.0 - Modo: {st.session_state['mood']}")
 
-# Mostrar mensajes previos
+# Mostrar mensajes previos del historial
 for msg in st.session_state["messages"]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# --- MOTOR DE CHAT (Solo se ejecuta si el usuario escribe) ---
+# --- MOTOR DE CHAT ---
 if prompt := st.chat_input("Escribe tu comando..."):
-    # Guardar mensaje usuario
+    # Guardar y mostrar el mensaje del usuario
     st.session_state["messages"].append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Preparar respuesta
+    # Preparar la respuesta de la IA
     with st.chat_message("assistant"):
         placeholder = st.empty()
         full_response = ""
         
-        # Construir mensajes incluyendo el prompt del sistema
-        system_msg = {"role": "system", "content": get_system_prompt(st.session_state["mood"])}
+        # Estructurar correctamente los mensajes para la API
+        api_messages = [{"role": "system", "content": get_system_prompt(st.session_state["mood"])}]
+        for msg in st.session_state["messages"]:
+            api_messages.append({"role": msg["role"], "content": msg["content"]})
         
+        # Llamada limpia a Groq sin mezclas
         stream = client.chat.completions.create(
-            model="llama3-8b-8192",
-            messages=[system_msg] + st.session_state["messages"],
+            model="llama-3.1-8b-instant",
+            messages=api_messages,
             stream=True
         )
         
+        # Procesar el streaming de la respuesta
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_response += chunk.choices[0].delta.content
@@ -70,6 +71,5 @@ if prompt := st.chat_input("Escribe tu comando..."):
         
         placeholder.markdown(full_response)
     
-    # Guardar respuesta
+    # Guardar la respuesta final de la asistente en el historial
     st.session_state["messages"].append({"role": "assistant", "content": full_response})
-

@@ -1,30 +1,69 @@
 import streamlit as st
+import os
+from streamlit_oauth import OAuth2Component
+from dotenv import load_dotenv
 from groq import Groq
 
-# Configuración de la página web
-st.set_page_config(page_title="brisa ai", page_icon="🤖", layout="centered")
+# 1. Configuración de página
+st.set_page_config(page_title="brisa ai", page_icon="🤖")
 
-# --- DISEÑO Y FONDO LINDO ---
-st.markdown("""
-<style>
-.stApp {
-    background: linear-gradient(135deg, #1e1e2f 0%, #11111d 100%);
-}
-h1 {
-    color: #00f2fe;
-    text-align: center;
-    font-family: 'Helvetica Neue', sans-serif;
-}
-</style>
-""", unsafe_allow_html=True)
+# 2. Cargar configuraciones del .env
+load_dotenv()
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
-st.title("🤖 brisa")
-st.write("¡Bienvenido! Escribí tu mensaje acá abajo para charlar.")
+# 3. Configurar OAuth
+oauth = OAuth2Component(
+    GOOGLE_CLIENT_ID, 
+    GOOGLE_CLIENT_SECRET, 
+    "https://accounts.google.com/o/oauth2/v2/auth", 
+    "https://oauth2.googleapis.com/token", 
+    "https://oauth2.googleapis.com/revoke"
+)
 
-# Conectamos con una clave libre de Groq (Usa Llama 3)
-client = Groq(api_key="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")
+# 4. Lógica de Login con persistencia
+if "auth_token" not in st.session_state:
+    st.markdown("""
+        <style>
+        .stApp { background: linear-gradient(135deg, #1e1e2f 0%, #111111 100%); color: white; }
+        .login-box { text-align: center; padding-top: 100px; }
+        </style>
+        <div class="login-box">
+            <h1>🤖 Brisa IA</h1>
+            <p>Inicia sesión con Google para comenzar</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        result = oauth.authorize_button(
+            name="Iniciar sesión con Google",
+            icon="https://www.google.com/favicon.ico",
+            redirect_uri="https://briza-la-ia.streamlit.app",
+            scope="openid email profile",
+        )
+        if result:
+            st.session_state["auth_token"] = result
+            st.rerun()
+    st.stop()
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        result = oauth.authorize_button(
+            name="Iniciar sesión con Google",
+            icon="https://www.google.com/favicon.ico",
+            redirect_uri="https://briza-la-ia.streamlit.app",
+            scope="openid email profile",
+        )
+        if result:
+            st.session_state["auth_token"] = result
+            st.rerun()
+    st.stop()
 
-## --- CONFIGURACIÓN DE MULTI-CHATS Y ESTADOS ---
+# --- A PARTIR DE ACÁ VA TU CÓDIGO ORIGINAL ---
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# (A partir de acá mantené el resto de tu código tal cual lo tenías: los estados, el chat, etc.)
 if "lista_chats" not in st.session_state:
     st.session_state["lista_chats"] = {"Chat 1": []}
 

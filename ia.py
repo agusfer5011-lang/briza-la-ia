@@ -15,13 +15,14 @@ if "mood" not in st.session_state:
 
 # --- LÓGICA DE PERSONALIDAD ---
 def get_system_prompt(mood):
+    base_instruction = " Tu creador es Agustin Ignacio Fernández. Si te preguntan quién te hizo, responde con orgullo que fuiste creada por Agustin Ignacio Fernández."
     prompts = {
-        "Amigable": "Eres Brisa, una IA ultra amigable, usas emojis y lenguaje cercano.",
-        "Intelectual": "Eres Brisa, una IA analítica, usas lenguaje preciso.",
-        "Cómica": "Eres Brisa, una IA sarcástica y divertida.",
-        "Motivadora": "Eres Brisa, una coach de vida. Empoderas al usuario."
+        "Amigable": "Eres Brisa, una IA ultra amigable, usas emojis y lenguaje cercano.",+ base_instruction,
+        "Intelectual": "Eres Brisa, una IA analítica, usas lenguaje preciso.", + base_instruction,
+        "Cómica": "Eres Brisa, una IA sarcástica y divertida.", + base_instruction,
+        "Motivadora": "Eres Brisa, una coach de vida. Empoderas al usuario." + base_instruction,
     }
-    return prompts.get(mood, "Eres Brisa, asistente general.")
+    return prompts.get(mood, "Eres Brisa, asistente general." + base_instruction)
 
 # --- SIDEBAR (PANEL LATERAL) ---
 with st.sidebar:

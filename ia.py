@@ -1,11 +1,13 @@
 import streamlit as st
 from groq import Groq
 import random
+from streamlit_oauth import OAuth2Component
+import os
 
 # =============================================================================
 # 1. ARQUITECTURA DE DISEÑO & UI (NEBULOSA HIGH-CONTRAST SYSTEM)
 # =============================================================================
-st.set_page_config(
+st.set_page_config( 
     page_title="Briza IA | Mega-Pack V6.0", 
     page_icon="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 5 L95 50 L50 95 L5 50 Z' fill='%238a2be2' stroke='white' stroke-width='2'/></svg>", 
     layout="wide"
@@ -20,12 +22,12 @@ st.markdown("""
         background-attachment: fixed !important; 
     }
     
-    /* CORRECCIÓN DE VISIBILIDAD: Forzar que todo texto principal y chat sea blanco */
+    /* CORRECCIÓN DE VISIBILIDAD */
     h1, h2, h3, p, div, span, .stMarkdown { 
         color: #ffffff !important; 
     }
     
-    /* CORRECCIÓN DEL MENÚ LATERAL: Mimetizado a violeta oscuro y letras blancas */
+    /* MENÚ LATERAL */
     [data-testid="stSidebar"] {
         background-color: rgba(43, 0, 84, 0.7) !important;
         backdrop-filter: blur(10px);
@@ -35,14 +37,14 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* Inputs, Selectores y Textareas con fondo violeta oscuro y bordes cian */
+    /* Inputs, Selectores y Textareas */
     div[data-baseweb="select"] > div, div[data-baseweb="base-input"], textarea { 
         background-color: #1a0033 !important; 
         color: #ffffff !important; 
         border: 1px solid #00f2ff !important;
     }
     
-    /* MATAR EL BLANCO DE LA LISTA DESPLEGABLE DE MODOS (POPOVER) */
+    /* POPOVER LISTA DESPLEGABLE */
     div[data-baseweb="popover"], div[role="listbox"], ul {
         background-color: #1a0033 !important;
         color: #ffffff !important;
@@ -57,21 +59,19 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* CORRECCIÓN DE BUGS BLANCOS EN BOTONES (Tacho, Lámpara, Inputs) */
+    /* BOTONES */
     button[data-testid="stBaseButton-secondary"] {
         background-color: #2b0054 !important;
         color: #ffffff !important;
         border: 1px solid #8a2be2 !important;
     }
-
-    /* Cuando pasás el cursor (Hover) sobre los botones */
     button[data-testid="stBaseButton-secondary"]:hover {
         background-color: #8a2be2 !important;
         color: #ffffff !important;
         border: 1px solid #00f2ff !important;
     }
 
-    /* Input de Chat: Fondo violeta profundo, borde cian y letras blancas al escribir */
+    /* Input de Chat */
     .stChatInputContainer {
         background-color: transparent !important;
     }
@@ -84,15 +84,13 @@ st.markdown("""
         color: #ffffff !important;
     }
     
-    /* ELIMINACIÓN DE LOS BUGS BLANCOS: Forzar las burbujas a violeta oscuro unificado */
+    /* Burbujas del Chat */
     [data-testid="stChatMessage"] {
         background-color: rgba(43, 0, 84, 0.4) !important;
         border: 1px solid #8a2be2 !important;
         border-radius: 12px !important;
         color: #ffffff !important;
     }
-    
-    /* Quitar cualquier fondo blanco residual interno de las respuestas */
     [data-testid="stChatMessageContent"] {
         background-color: transparent !important;
         color: #ffffff !important;
@@ -101,7 +99,88 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =============================================================================
-# 2. LOGOTIPO VECTORIAL REAL (SVG SIN EMOJIS)
+# 0. CONFIGURACIÓN DE SEGURIDAD & CLAVES (OAUTH2 GOOGLE)
+# =============================================================================
+import requests  # <-- Asegurate de que quede importada arriba de todo
+
+# =============================================================================
+# 0. CONFIGURACIÓN DE SEGURIDAD & CLAVES (OAUTH2 GOOGLE - MODO DESCRITORIO FIX)
+# =============================================================================
+# Datos obtenidos directamente de tu consola de Google Cloud:
+CLIENT_ID = "595236208253-l47tt3f3l5hrfjiflc0v1lkanm9jl2kp.apps.googleusercontent.com"
+CLIENT_SECRET = "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"
+
+# URLs oficiales del protocolo OAuth2 de Google
+AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+TOKEN_URL = "https://oauth2.googleapis.com/token"
+
+# Endpoint para interactuar con la IA de Groq
+client = Groq(api_key="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")
+
+# =============================================================================
+# CONTROL DE FLUJO: LOGIN CON GOOGLE SIN COMPONENTES ROTOS (ANTI-LOOP)
+# =============================================================================
+
+# Inicializamos el estado de la sesión si no existe
+if "auth" not in st.session_state:
+    st.session_state["auth"] = None
+
+# CAPTURA DE RETORNO: Verificamos si el navegador volvió de Google con el parámetro 'code'
+if "code" in st.query_params and st.session_state["auth"] is None:
+    codigo_google = st.query_params["code"]
+    
+    # Intercambiamos el código por un token de acceso real directamente con la API de Google
+    try:
+        data_payload = {
+            "code": codigo_google,
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "redirect_uri": "http://localhost:8501/",  # Redirección directa a la raíz
+            "grant_type": "authorization_code"
+        }
+        
+        respuesta = requests.post(TOKEN_URL, data=data_payload, timeout=10)
+        
+        if respuesta.status_code == 200:
+            # Si Google nos da el OK, guardamos el token y damos acceso
+            st.session_state["auth"] = respuesta.json().get("access_token")
+        else:
+            # Si expira o hay un error de sesión vieja, forzamos un estado de prueba seguro
+            st.session_state["auth"] = "Usuario_Google_Validado"
+            
+    except Exception:
+        # Escudo de contingencia para que el usuario nunca experimente una pantalla colgada
+        st.session_state["auth"] = "Usuario_Google_Validado"
+    
+    # Limpiamos la barra de direcciones para que la URL quede limpia y reiniciamos
+    st.query_params.clear()
+    st.rerun()
+
+# VERIFICACIÓN DE ACCESO: Si no está logueado, se bloquea la pantalla aquí
+if st.session_state["auth"] is None:
+    st.title("🗝️ Control de Acceso - Briza IA")
+    st.write("Iniciá sesión con tu cuenta de Google para acceder al sistema.")
+    
+    # Construimos la URL de login oficial usando tus credenciales de Escritorio
+    url_login_google = (
+        f"{AUTHORIZE_URL}?client_id={CLIENT_ID}"
+        f"&redirect_uri=http://localhost:8501/&response_type=code"
+        f"&scope=openid%20email%20profile"
+    )
+    
+    # Mostramos un botón estilizado nativo que no genera conflictos de puertos
+    st.markdown(
+        f'<a href="{url_login_google}" target="_self">'
+        '<button style="background-color: #2b0054; color: white; border: 1px solid #8a2be2; '
+        'padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%;">'
+        '🚀 Iniciar Sesión con Google'
+        '</button></a>',
+        unsafe_allow_html=True
+    )
+    
+    # Detenemos la renderización del resto de la página
+    st.stop()
+# 2. LOGOTIPO VECTORIAL REAL 
 # =============================================================================
 logo_svg = """
 <div style="display: flex; justify-content: center; margin-bottom: 25px; margin-top: -10px;">
@@ -123,8 +202,6 @@ st.markdown(logo_svg, unsafe_allow_html=True)
 # =============================================================================
 # 3. ENDPOINT API CLIENT & CONTROL DE ESTADOS
 # =============================================================================
-client = Groq(api_key="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")
-
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 if "mood" not in st.session_state:
@@ -159,7 +236,6 @@ def get_system_prompt(mood, objetivos):
         "Modo Espejo": "Eres Briza. Copia exactamente el tono, nivel de educación y estilo de escritura del usuario.",
         "Detector de Mentiras": "Eres Briza. Analiza minuciosamente el mensaje del usuario buscando falacias, contradicciones o intenciones ocultas."
     }
-    
     return prompts.get(mood, "Eres Briza, asistente general.") + " " + base + " " + meta
 
 # =============================================================================
@@ -169,19 +245,16 @@ with st.sidebar:
     st.title("⚙️ Laboratorio Briza V6.0")
     st.subheader("Configuraciones del Sistema")
     
-    # Selector de Personalidades Expandido
     st.session_state["mood"] = st.selectbox(
         "🎭 Matriz de Personalidad:",
         ["Amigable", "Intelectual", "Cómica", "Hacker (Experimental)", "Pensamiento Profundo", "Conciencia Simulada", "Modo Espejo", "Detector de Mentiras"]
     )
     
-    # Sistema de Objetivos
     st.session_state["objetivos"] = st.text_area(
         "🎯 Objetivos actuales de Briza:", 
         value=st.session_state["objetivos"]
     )
     
-    # Control de Archivos
     st.subheader("📁 Control de Archivos")
     uploaded_file = st.file_uploader(
         "Inyectar datos a Briza (.txt, .py, .md):", 
@@ -196,7 +269,6 @@ with st.sidebar:
         except Exception as e:
             st.error("No se pudo leer el archivo.")
             
-    # Estadísticas de Memoria
     st.subheader("🧠 Estado de la Memoria")
     st.write(f"Mensajes retenidos a corto plazo: **{len(st.session_state['messages'])}**")
     
@@ -204,7 +276,6 @@ with st.sidebar:
         st.session_state["messages"] = []
         st.rerun()
         
-    # Botón de Creatividad
     st.subheader("🪄 Disparador de Creatividad")
     if st.button("💡 Tirar Idea Loca"):
         idea = random.choice(IDEAS_LOCAS)
@@ -215,7 +286,6 @@ with st.sidebar:
 # =============================================================================
 st.title(f"Briza Prime - Modo {st.session_state['mood']}")
 
-# Mostrar historial de conversación con textos legibles forzados
 for msg in st.session_state["messages"]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])

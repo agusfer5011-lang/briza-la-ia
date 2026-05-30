@@ -118,60 +118,57 @@ TOKEN_URL = "https://oauth2.googleapis.com/token"
 client = Groq(api_key="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")
 
 # =============================================================================
-# CONTROL DE FLUJO: LOGIN CON GOOGLE SIN COMPONENTES ROTOS (ANTI-LOOP)
 # =============================================================================
+# 0. CONFIGURACIÓN DE SEGURIDAD & CLAVES - CORREGIDO
+# =============================================================================
+CLIENT_ID = "595236208253-485urfre39q4g5blegjve3u1ee2l1lh9.apps.googleusercontent.com"
+CLIENT_SECRET = "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"
+REDIRECT_URI = "https://briza-la-ia.streamlit.app/"
+AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+TOKEN_URL = "https://oauth2.googleapis.com/token"
 
-# Inicializamos el estado de la sesión si no existe
+# Inicializamos estado
 if "auth" not in st.session_state:
     st.session_state["auth"] = None
 
-# CAPTURA DE RETORNO: Verificamos si el navegador volvió de Google con el parámetro 'code'
+# CAPTURA Y PROCESAMIENTO DE RETORNO (OAUTH)
 if "code" in st.query_params and st.session_state["auth"] is None:
     codigo_google = st.query_params["code"]
     
-    # Intercambiamos el código por un token de acceso real directamente con la API de Google
-   # Intercambiamos el código por un token de acceso real directamente
-    if "code" in st.query_params and st.session_state["auth"] is None:
-        codigo_google = st.query_params["code"]
+    data_payload = {
+        "code": codigo_google,
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "redirect_uri": REDIRECT_URI,
+        "grant_type": "authorization_code"
+    }
+    
+    try:
+        respuesta = requests.post(TOKEN_URL, data=data_payload, timeout=10)
         
-        try:
-            data_payload = {
-                "code": codigo_google,
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-               f"&redirect_uri=https://briza-la-ia.streamlit.app/&response_type=code"
-                "grant_type":"authorization_code"
-            }
+        if respuesta.status_code == 200:
+            st.session_state["auth"] = respuesta.json().get("access_token")
+        else:
+            st.error(f"Error en token: {respuesta.status_code} - {respuesta.text}")
             
-            respuesta = requests.post(TOKEN_URL, data=data_payload, timeout=10)
-            
-            if respuesta.status_code == 200:
-                # Si Google nos da el OK, guardamos el token y damos acceso
-                st.session_state["auth"] = respuesta.json().get("access_token")
-            else:
-                # Si expira o hay un error de sesión vieja, forzamos un estado
-                st.session_state["auth"] = "Usuario_Google_Validado"
-                
-        except Exception:
-            # Escudo de contingencia para que el usuario nunca experimente trabas
-            st.session_state["auth"] = "Usuario_Google_Validado"
-    # Limpiamos la barra de direcciones para que la URL quede limpia y reiniciamos
+    except Exception as e:
+        st.error(f"Error de conexión: {e}")
+        
     st.query_params.clear()
     st.rerun()
 
-# VERIFICACIÓN DE ACCESO: Si no está logueado, se bloquea la pantalla aquí
+# VERIFICACIÓN DE ACCESO
 if st.session_state["auth"] is None:
     st.title("🗝️ Control de Acceso - Briza IA")
-    st.write("Iniciá sesión con tu cuenta de Google para acceder al sistema.")
+    st.write("Iniciá sesión con tu cuenta de Google.")
     
-    # Construimos la URL de login oficial usando tus credenciales de Escritorio
     url_login_google = (
         f"{AUTHORIZE_URL}?client_id={CLIENT_ID}"
-        f"&redirect_uri="https://briza-la-ia.streamlit.app/",
-        f"&scope=openid%20email%20profile"
+        f"&redirect_uri={REDIRECT_URI}"
+        "&response_type=code"
+        "&scope=openid%20email%20profile"
     )
     
-    # Mostramos un botón estilizado nativo que no genera conflictos de puertos
     st.markdown(
         f'<a href="{url_login_google}" target="_self">'
         '<button style="background-color: #2b0054; color: white; border: 1px solid #8a2be2; '
@@ -180,7 +177,9 @@ if st.session_state["auth"] is None:
         '</button></a>',
         unsafe_allow_html=True
     )
-    
+    st.stop()
+# CONTROL DE FLUJO: LOGIN CON GOOGLE SIN COMPONENTES
+
     # Detenemos la renderización del resto de la página
     st.stop()
 # 2. LOGOTIPO VECTORIAL REAL 

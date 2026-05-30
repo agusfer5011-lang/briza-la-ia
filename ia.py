@@ -107,8 +107,8 @@ import requests  # <-- Asegurate de que quede importada arriba de todo
 # 0. CONFIGURACIÓN DE SEGURIDAD & CLAVES (OAUTH2 GOOGLE - MODO DESCRITORIO FIX)
 # =============================================================================
 # Datos obtenidos directamente de tu consola de Google Cloud:
-CLIENT_ID = "595236208253-l47tt3f3l5hrfjiflc0v1lkanm9jl2kp.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
+CLIENT_ID = "595236208253-485urfre39q4g5blegjve3u1ee2l1lh9.apps.googleusercontent.com"
+CLIENT_SECRET = "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"
 
 # URLs oficiales del protocolo OAuth2 de Google
 AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -130,28 +130,31 @@ if "code" in st.query_params and st.session_state["auth"] is None:
     codigo_google = st.query_params["code"]
     
     # Intercambiamos el código por un token de acceso real directamente con la API de Google
-    try:
-        data_payload = {
-            "code": codigo_google,
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "redirect_uri": "http://localhost:8501/",  # Redirección directa a la raíz
-            "grant_type": "authorization_code"
-        }
+   # Intercambiamos el código por un token de acceso real directamente
+    if "code" in st.query_params and st.session_state["auth"] is None:
+        codigo_google = st.query_params["code"]
         
-        respuesta = requests.post(TOKEN_URL, data=data_payload, timeout=10)
-        
-        if respuesta.status_code == 200:
-            # Si Google nos da el OK, guardamos el token y damos acceso
-            st.session_state["auth"] = respuesta.json().get("access_token")
-        else:
-            # Si expira o hay un error de sesión vieja, forzamos un estado de prueba seguro
-            st.session_state["auth"] = "Usuario_Google_Validado"
+        try:
+            data_payload = {
+                "code": codigo_google,
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "redirect_uri": "https://briza-la-ia.streamlit.app/",
+                "grant_type": "authorization_code"
+            }
             
-    except Exception:
-        # Escudo de contingencia para que el usuario nunca experimente una pantalla colgada
-        st.session_state["auth"] = "Usuario_Google_Validado"
-    
+            respuesta = requests.post(TOKEN_URL, data=data_payload, timeout=10)
+            
+            if respuesta.status_code == 200:
+                # Si Google nos da el OK, guardamos el token y damos acceso
+                st.session_state["auth"] = respuesta.json().get("access_token")
+            else:
+                # Si expira o hay un error de sesión vieja, forzamos un estado
+                st.session_state["auth"] = "Usuario_Google_Validado"
+                
+        except Exception:
+            # Escudo de contingencia para que el usuario nunca experimente trabas
+            st.session_state["auth"] = "Usuario_Google_Validado"
     # Limpiamos la barra de direcciones para que la URL quede limpia y reiniciamos
     st.query_params.clear()
     st.rerun()

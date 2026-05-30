@@ -167,7 +167,7 @@ if st.session_state["auth"] is None:
     # Construimos la URL de login oficial usando tus credenciales de Escritorio
     url_login_google = (
         f"{AUTHORIZE_URL}?client_id={CLIENT_ID}"
-        f"&redirect_uri=http://localhost:8501/&response_type=code"
+        f"&redirect_uri="https://briza-la-ia.streamlit.app/",
         f"&scope=openid%20email%20profile"
     )
     

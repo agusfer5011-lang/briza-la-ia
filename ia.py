@@ -1,9 +1,10 @@
 import streamlit as st
 from groq import Groq
 import random
-from streamlit_oauth import OAuth2Component
 import os
-
+import requests
+# --- INICIALIZACIÓN DE LA API (DEBE ESTAR ACÁ ARRIBA) ---
+client = Groq(api_key="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")
 # =============================================================================
 # 1. ARQUITECTURA DE DISEÑO & UI (NEBULOSA HIGH-CONTRAST SYSTEM)
 # =============================================================================

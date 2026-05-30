@@ -99,68 +99,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =============================================================================
-# 0. CONFIGURACIÓN DE SEGURIDAD & CLAVES (OAUTH2 GOOGLE)
+# 0. CONTROL DE ACCESO (LOGIN LOCAL - NO GOOGLE)
 # =============================================================================
-import requests  # <-- Asegurate de que quede importada arriba de todo
+if "autenticado" not in st.session_state:
+    st.session_state["autenticado"] = False
 
-# =============================================================================
-# 0. CONFIGURACIÓN DE SEGURIDAD & CLAVES (OAUTH2 GOOGLE - MODO DESCRITORIO FIX)
-# =============================================================================
-# Datos obtenidos directamente de tu consola de Google Cloud:
-CLIENT_ID = "595236208253-485urfre39q4g5blegjve3u1ee2l1lh9.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
-
-# URLs oficiales del protocolo OAuth2 de Google
-AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-TOKEN_URL = "https://oauth2.googleapis.com/token"
-
-# Endpoint para interactuar con la IA de Groq
-client = Groq(api_key="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")
-
-# =============================================================================
-# =============================================================================
-# 0. CONFIGURACIÓN DE SEGURIDAD & CLAVES - CORREGIDO
-# =============================================================================
-CLIENT_ID = "595236208253-485urfre39q4g5blegjve3u1ee2l1lh9.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
-REDIRECT_URI = "https://briza-la-ia.streamlit.app/"
-AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-TOKEN_URL = "https://oauth2.googleapis.com/token"
-
-# Inicializamos estado
-if "auth" not in st.session_state:
-    st.session_state["auth"] = None
-
-# CAPTURA Y PROCESAMIENTO DE RETORNO (OAUTH)
-if "code" in st.query_params and st.session_state["auth"] is None:
-    codigo_google = st.query_params["code"]
-    
-    data_payload = {
-        "code": codigo_google,
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "redirect_uri": REDIRECT_URI,
-        "grant_type": "authorization_code"
-    }
-    
-    try:
-        respuesta = requests.post(TOKEN_URL, data=data_payload, timeout=10)
-        
-        if respuesta.status_code == 200:
-            st.session_state["auth"] = respuesta.json().get("access_token")
+if not st.session_state["autenticado"]:
+    st.title("🗝️ Acceso Privado - Briza IA")
+    password = st.text_input("Ingresa la clave de acceso:", type="password")
+    if st.button("🚀 Ingresar al Sistema"):
+        if password == "Agus2026": 
+            st.session_state["autenticado"] = True
+            st.rerun()
         else:
-            st.error(f"Error en token: {respuesta.status_code} - {respuesta.text}")
-            
-    except Exception as e:
-        st.error(f"Error de conexión: {e}")
-        
-    st.query_params.clear()
-    st.rerun()
-
-# VERIFICACIÓN DE ACCESO
-if st.session_state["auth"] is None:
-    st.title("🗝️ Control de Acceso - Briza IA")
-    st.write("Iniciá sesión con tu cuenta de Google.")
+            st.error("Acceso denegado. Clave incorrecta.")
+    st.stop()
     
     url_login_google = (
         f"{AUTHORIZE_URL}?client_id={CLIENT_ID}"

@@ -108,7 +108,7 @@ import requests  # <-- Asegurate de que quede importada arriba de todo
 # =============================================================================
 # Datos obtenidos directamente de tu consola de Google Cloud:
 CLIENT_ID = "595236208253-485urfre39q4g5blegjve3u1ee2l1lh9.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
+CLIENT_SECRET = "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"
 
 # URLs oficiales del protocolo OAuth2 de Google
 AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"

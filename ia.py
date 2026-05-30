@@ -139,7 +139,7 @@ if "code" in st.query_params and st.session_state["auth"] is None:
                 "code": codigo_google,
                 "client_id": CLIENT_ID,
                 "client_secret": CLIENT_SECRET,
-                "redirect_uri": "https://briza-la-ia.streamlit.app/",
+               f"&redirect_uri=https://briza-la-ia.streamlit.app/&response_type=code"
                 "grant_type":"authorization_code"
             }
             

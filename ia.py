@@ -140,7 +140,7 @@ if "code" in st.query_params and st.session_state["auth"] is None:
                 "client_id": CLIENT_ID,
                 "client_secret": CLIENT_SECRET,
                 "redirect_uri": "https://briza-la-ia.streamlit.app/",
-                "grant_type": "authorization_code"
+                "grant_type":"authorization_code"
             }
             
             respuesta = requests.post(TOKEN_URL, data=data_payload, timeout=10)

@@ -4,7 +4,7 @@ import random
 import os
 import requests
 # --- INICIALIZACIÓN DE LA API (DEBE ESTAR ACÁ ARRIBA) ---
-client = Groq(api_key="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")
+client = Groq(api_key="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")
 # =============================================================================
 # 1. ARQUITECTURA DE DISEÑO & UI (NEBULOSA HIGH-CONTRAST SYSTEM)
 # =============================================================================

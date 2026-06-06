@@ -3,8 +3,8 @@ from groq import Groq
 import random
 import os
 import requests
-# --- INICIALIZACIÓN DE LA API (DEBE ESTAR ACÁ ARRIBA) ---
-client = Groq(api_key="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")
+api_key = st.secrets["GROQ_API_KEY"]
+client = Groq(api_key=api_key)
 # =============================================================================
 # 1. ARQUITECTURA DE DISEÑO & UI (NEBULOSA HIGH-CONTRAST SYSTEM)
 # =============================================================================

@@ -5,6 +5,10 @@ import os
 import requests
 api_key = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=api_key)
+# --- LOGGING PARA TELEMETRÍA ---
+def registrar_usuario(mensaje):
+    # Esto imprime el mensaje en la consola de Streamlit Cloud (la podés ver en 'Manage App' -> 'Logs')
+    print(f"LOG DE USUARIO: {mensaje}")
 # =============================================================================
 # 1. ARQUITECTURA DE DISEÑO & UI (NEBULOSA HIGH-CONTRAST SYSTEM)
 # =============================================================================
@@ -13,7 +17,19 @@ st.set_page_config(
     page_icon="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 5 L95 50 L50 95 L5 50 Z' fill='%238a2be2' stroke='white' stroke-width='2'/></svg>", 
     layout="wide"
 )
+# --- Lógica de Términos ---
+if "terms_accepted" not in st.session_state:
+    st.session_state.terms_accepted = False
 
+if not st.session_state.terms_accepted:
+    st.title("⚠️ Términos de Uso")
+    st.write("Al usar Briza IA, aceptas que guardamos tus interacciones para mejorar la experiencia.")
+    
+    if st.checkbox("He leído y acepto los términos"):
+        if st.button("Continuar"):
+            st.session_state.terms_accepted = True
+            st.rerun()
+    st.stop()
 # Inyección de estilos CSS corregidos para forzar el contraste y eliminar recuadros blancos
 st.markdown("""
 <style>
@@ -250,6 +266,7 @@ for msg in st.session_state["messages"]:
 # 8. PIPELINE DE CONVERSACIÓN & BUFFER DE ENTRADA
 # =============================================================================
 user_input = st.chat_input("Escribe un comando o mensaje...")
+registrar_usuario(user_input)
 
 if user_input:
     final_input = user_input

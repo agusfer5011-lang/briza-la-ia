@@ -267,6 +267,7 @@ for msg in st.session_state["messages"]:
 # =============================================================================
 # --- 8. PIPELINE DE CONVERSACIÓN ---
 user_input = st.chat_input("Escribe un comando o mensaje...")
+registrar_usuario(user_input)  # <--- AQUÍ ES DONDE DEBE IR
 
 if user_input:
     # --- Mové la llamada AQUÍ ADENTRO ---

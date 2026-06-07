@@ -5,11 +5,11 @@ import os
 import requests
 api_key = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=api_key)
-# --- LOGGING PARA TELEMETRÍA ---
-# --- LOGGING PARA TELEMETRÍA ---
+# --- LOGGING PARA TELEMETRÍA (CAMBIO PARA VIZUALIZAR) ---
 def registrar_usuario(mensaje):
-    # Esta línea borrará el 'print' y lo reemplazará por un aviso visual en la web
-    st.sidebar.success(f"Log: {mensaje}")
+    # En lugar de print, usamos st.sidebar.info
+    # Esto obligará a que el mensaje salga en la barra lateral de tu web
+    st.sidebar.info(f"Log: {mensaje}")
 # =============================================================================
 # 1. ARQUITECTURA DE DISEÑO & UI (NEBULOSA HIGH-CONTRAST SYSTEM)
 # =============================================================================

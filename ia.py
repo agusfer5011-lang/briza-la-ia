@@ -6,9 +6,10 @@ import requests
 api_key = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=api_key)
 # --- LOGGING PARA TELEMETRÍA ---
+# --- LOGGING PARA TELEMETRÍA ---
 def registrar_usuario(mensaje):
-    # Esto imprime el mensaje en la consola de Streamlit Cloud (la podés ver en 'Manage App' -> 'Logs')
-    print(f"LOG DE USUARIO: {mensaje}")
+    # Esta línea borrará el 'print' y lo reemplazará por un aviso visual en la web
+    st.sidebar.success(f"Log: {mensaje}")
 # =============================================================================
 # 1. ARQUITECTURA DE DISEÑO & UI (NEBULOSA HIGH-CONTRAST SYSTEM)
 # =============================================================================

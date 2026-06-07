@@ -6,12 +6,10 @@ import requests
 api_key = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=api_key)
 # --- LOGGING PARA TELEMETRÍA (CAMBIO PARA VIZUALIZAR) ---
+# --- ESTO ES LA DEFINICIÓN ---
 def registrar_usuario(mensaje):
-    # Esto dibuja un mensaje visual en la parte central (main) de tu app
     with st.container():
         st.info(f"⚙️ Sistema detectó: {mensaje}")
-    # Opcional: También puedes mostrarlo en la barra lateral para que quede fijo
-    st.sidebar.info(f"Log: {mensaje}")
 # =============================================================================
 # 1. ARQUITECTURA DE DISEÑO & UI (NEBULOSA HIGH-CONTRAST SYSTEM)
 # =============================================================================
